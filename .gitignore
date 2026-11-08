@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test, build, and cache output
+coverage/
+.nyc_output/
+dist/
+build/
+out/
+*.tsbuildinfo
+.cache/
+.turbo/
+.parcel-cache/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# DSH runtime / profile artifacts
+.dsh/
+*.tgz
+
+# Temporary files
+tmp/
+temp/
+*.tmp
