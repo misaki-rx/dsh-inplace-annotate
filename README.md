@@ -1,201 +1,158 @@
 # dsh-inplace-annotate
 
-在 DSH Web 对话里，用鼠标选中 agent 回复中的一段文字，随手标记 **同意 / 不同意 / 批注**。
-这些批注会暂存在当前会话中，等你发送下一条消息时自动带上；你发出的那条消息本身保持干净，
-聊天记录里不会多出批注文本。
+**English** | [简体中文](README.zh-CN.md)
 
-- 适合慢慢审阅长回复：边看边标，最后一次性反馈。
-- 每条批注都带着你选中的原文，agent 能准确知道你在说哪一段。
-- 已标记的原文会在回复里留下荧光笔式高亮和右上角图标，点击待发送列表里的条目就能跳回去。
-- 只影响当前会话；卸载插件后内置的「引用文本」按钮会恢复。
+In the DSH Web chat, select a passage in an agent reply and mark it **Agree**, **Disagree**, or **Comment**. Annotations are held in the current conversation and attached automatically when you send your next message. The message you send stays clean: annotation text never shows up in the chat transcript.
 
----
-
-## 目录
-
-- [环境要求](#环境要求)
-- [安装与启用](#安装与启用)
-- [快速上手](#快速上手)
-- [操作说明](#操作说明)
-- [待发送批注栏](#待发送批注栏)
-- [批注如何发送给 agent](#批注如何发送给-agent)
-- [隐私与数据](#隐私与数据)
-- [限制与已知行为](#限制与已知行为)
-- [故障排查](#故障排查)
-- [卸载](#卸载)
-- [开发者验证](#开发者验证)
+- Made for reviewing long replies: annotate as you read, then give all your feedback at once.
+- Every annotation carries the passage you selected, so the agent knows exactly which part you mean.
+- Annotated passages get a highlighter-style mark and a corner badge in the reply. Click an entry in the pending list to jump back to it.
+- Scoped to the current conversation. Uninstall the plugin and the built-in **Quote text** button returns.
 
 ---
 
-## 环境要求
+## Contents
 
-- DSH **Web GUI**（`dsh web` 打开的页面）。本插件的界面部分只提供 Web 版本。
-- 当前 profile 已安装并启用本插件（包名 `@local/dsh-inplace-annotate`）。
-- 浏览器能正常访问你正在使用的 DSH 页面，并保持登录状态。
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Using annotations](#using-annotations)
+- [Pending annotations bar](#pending-annotations-bar)
+- [How annotations reach the agent](#how-annotations-reach-the-agent)
+- [Troubleshooting](#troubleshooting)
+- [Uninstalling](#uninstalling)
+- [Developer checks](#developer-checks)
 
-> 批注通过 DSH 现有的浏览器登录态访问本机 Host，不需要你额外配置令牌或 API Key。
+---
 
-## 安装与启用
+## Requirements
 
-本插件是一个本地 bundle，由 DSH 的 Plugin Manager 安装；在 Plugin Manager 中显示为
-**回复批注 / Reply annotations**（取决于界面语言，包名 `@local/dsh-inplace-annotate`）。
-首次安装时：
+- The DSH **Web GUI** (the page opened by `dsh web`). The plugin's UI is Web-only.
+- The plugin installed and enabled in your current profile (package name `@local/dsh-inplace-annotate`).
+- A browser that can reach your DSH page, with your session still signed in.
 
-1. 通过 DSH 的 Plugin Manager 以本地 bundle 方式安装本插件目录；如果你在用 DSH agent，可以让它
-   执行 **Install bundle** 并指向该目录。
-2. 确认插件 `@local/dsh-inplace-annotate` 已出现在插件列表中并处于启用状态。
-3. **刷新当前 DSH 页面**。客户端代码在页面加载时注入，只安装不刷新是看不到新界面的。
-4. 如果 Plugin Manager 提示需要重启才能生效，按提示重启该 profile，然后重新打开页面。
+> Annotations reach the local Host through DSH's existing browser session. No extra tokens or API keys are needed.
 
-更新插件代码后，需要重新加载插件并刷新页面；只改文件不会自动替换已经加载的客户端代码。
+## Installation
 
-## 快速上手
+This plugin is a local bundle installed through DSH's Plugin Manager. It appears there as **Reply annotations** (or **回复批注**, depending on the UI language; package name `@local/dsh-inplace-annotate`).
 
-1. 等一条 agent 回复**完成**（流式输出结束）。
-2. 用鼠标选中回复中的一段文字。
-3. 选区上方会出现操作条：**同意 / 不同意 / 批注 / 引用**。
-4. 点「同意」或「不同意」立即记录；点「批注」会展开一个输入框，写完后按 `Cmd/Ctrl+Enter` 保存。保存后原文会出现高亮和右上角图标。
-5. 输入框上方会出现「待发送批注」栏，里面是刚才累积的批注。点击条目的原文区域或右侧箭头可以跳回对应位置。
-6. 正常输入并发送下一条消息。批注会随这条消息一起交给 agent；你自己的消息气泡只显示原文。
-7. agent 领取这条消息后，待发送批注栏会在约 1.5 秒内自动清空。
+For a first-time install:
 
-一个典型流程：
+1. Install this plugin directory as a local bundle through DSH's Plugin Manager. If you are working with a DSH agent, ask it to run **Install bundle** against this directory.
+2. Confirm that `@local/dsh-inplace-annotate` appears in the plugin list and is enabled.
+3. **Refresh the current DSH page.** Client code is injected at page load, so installing without refreshing will not show the new UI.
+4. If Plugin Manager says a restart is required, restart that profile as prompted, then reopen the page.
 
-> 选中「这个方案会引入额外的网络请求」→ 不同意
-> 选中「错误处理建议」→ 批注：「请给出具体的重试策略和退避时间」
-> 发送：「按上面的意见改一版」
+After changing plugin code, reload the plugin and refresh the page. Editing files alone does not replace client code that is already loaded.
 
-## 操作说明
+## Quick start
 
-| 操作 | 作用 | 保存后 |
+1. Wait for an agent reply to **finish** (streaming complete).
+2. Select a passage in the reply with your mouse.
+3. A toolbar appears above the selection: **Agree / Disagree / Comment / Quote**.
+4. Clicking **Agree** or **Disagree** records it immediately. Clicking **Comment** opens an input box; write your note and press `Cmd/Ctrl+Enter` to save. The passage is then highlighted and gets a corner badge.
+5. A pending annotations bar (labeled **Review notes** in the UI) appears above the input box, listing the annotations you have accumulated. Click an entry's text area or its right-hand arrow to jump back to the corresponding passage.
+6. Type and send your next message as usual. Annotations go to the agent with that message; your own bubble shows only the text you typed.
+7. Once the agent picks up the message, the pending annotations bar clears itself within about 1.5 seconds.
+
+A typical flow:
+
+> - Select "this approach introduces an extra network request" → **Disagree**
+> - Select "error-handling suggestion" → **Comment**: "Please give a concrete retry strategy with backoff timings"
+> - Send: "Revise based on the feedback above"
+
+## Using annotations
+
+| Action | What it does | After saving |
 |---|---|---|
-| **同意** | 你认可所选原文 | 记录该段原文，不需要 agent 修改 |
-| **不同意** | 你不认可所选原文 | 记录该段原文，agent 应修改或重新考虑 |
-| **批注** | 输入具体修改意见 | 记录原文 + 你的备注；备注可再次编辑 |
-| **引用** | 把所选文字插入输入框（原有引用功能） | 不产生批注，只进入输入框 |
-| **原文高亮** | 保存后，所选原文叠加黄色荧光底与类别色下划线 | 右上角显示同意 / 不同意 / 批注图标 |
-| **跳转** | 点击条目中的原文区域或右侧箭头 | 滚动到对应位置并短暂高亮 |
+| **Agree** | You endorse the selected text | Records the passage; no change requested from the agent |
+| **Disagree** | You reject the selected text | Records the passage; the agent should revise or reconsider it |
+| **Comment** | Enter specific feedback | Records the passage plus your note; the note can be edited later |
+| **Quote** | Insert the selected text into the input box (the existing quote feature) | No annotation; the text only goes into the input box |
+| **Highlight** | Saved passages get a yellow highlighter background and a category-colored underline | A corner badge shows Agree / Disagree / Comment |
+| **Jump** | Click an entry's text area or its right-hand arrow | Scrolls to the passage and briefly highlights it |
 
-- 高亮使用统一的黄色荧光底；下划线和右上角图标按类别着色：同意为绿色、不同意为红色、批注为蓝色。
-- 列表条目的原文区域和右侧箭头都可点击跳转；跳转成功时该条目会短暂高亮。
-- 「批注」输入框里 `Cmd/Ctrl+Enter` 保存，`Esc` 取消并回到操作条。
-- 所有按钮都支持键盘操作；Tab 可聚焦，Enter/空格可触发。
-- 操作条会替换内置的「引用文本」小按钮；引用能力仍然保留，只是并入了同一个操作条。
+- Highlights share one yellow highlighter background. The underline and corner badge are colored by category: green for Agree, red for Disagree, blue for Comment.
+- Both the entry's text area and its right-hand arrow jump to the passage. The entry flashes briefly when the jump succeeds.
+- In the **Comment** input box, `Cmd/Ctrl+Enter` saves and `Esc` cancels back to the toolbar.
+- All buttons work with the keyboard: Tab to focus, Enter or Space to activate.
+- The toolbar replaces the built-in **Quote text** mini-button. Quoting still works; it is now part of the same toolbar.
 
-## 待发送批注栏
+## Pending annotations bar
 
-批注栏位于输入框正上方，按创建顺序列出所有尚未发送的批注。
+The bar sits directly above the input box and lists, in creation order, every annotation that has not been sent yet. In the UI it is labeled **Review notes**.
 
-- **标题 / 数量**：当前有多少条待发送批注。
-- **收起 / 展开**：列表右上角的 chevron 图标按钮；收起后列表隐藏，原文高亮仍然保留。
-- **清空**：第一次点击变为「确认清空」，再点一次才会真正清空。
-- **跳转**：点击条目的原文区域或右侧箭头，滚动到原文并短暂高亮。
-- **编辑**：仅「批注」类条目可改备注，保存后立即同步。
-- **删除**：移除单条批注。
-- 列表超过高度后会在栏内滚动；收起后列表内容不再占用高度。
-- 每条都会显示你所选的原文摘要和（批注类的）备注。
+- **Title / count**: how many annotations are pending.
+- **Collapse / expand**: the chevron button at the top right of the list. Collapsing hides the list but keeps the highlights.
+- **Clear all**: the first click turns into **Confirm clear**; a second click actually clears.
+- **Jump**: click an entry's text area or its right-hand arrow to scroll to the passage and briefly highlight it.
+- **Edit**: only **Comment** entries have an editable note; changes sync immediately on save.
+- **Delete**: removes a single annotation.
+- The list scrolls inside the bar once it exceeds the height limit; when collapsed it no longer takes up height.
+- Each entry shows a summary of the selected passage and, for comments, your note.
 
-批注按会话隔离：切换到另一个会话不会串数据；切回来会重新从 Host 读取。
+Annotations are scoped per conversation: switching to another conversation does not leak data, and switching back re-reads them from the Host.
 
-## 批注如何发送给 agent
+## How annotations reach the agent
 
-- 批注不会打断正在进行的回合。agent 正在运行时，新批注先留在待发送栏；等 agent 空闲后，
-  随下一条消息发送。
-- 你发送下一条消息时，Host 会把全部待发送批注组合成一条**隐藏的 context 消息**，紧挨在你的
-  消息之前进入模型请求，然后清空待发送列表。
-- 聊天记录里只显示你原本输入的那条消息；批注文本不会出现在气泡里。
-- 刷新页面不会丢批注：Host 会从当前会话中恢复；即使 Host 插件重载，也能从会话的待领取消息里恢复。
-- 批注进入请求后，会作为该轮对话的一部分保留在会话历史中；后续回合模型仍能看到它们。
+- Annotations do not interrupt an in-flight turn. While the agent is running, new annotations stay in the pending bar and go out with your next message once the agent is idle.
+- When you send your next message, the Host combines all pending annotations into one **hidden context message**, placed immediately before your message in the model request, then clears the pending list.
+- The chat transcript only shows the message you typed; annotation text never appears in the bubble.
+- Refreshing the page does not lose annotations: the Host restores them from the current conversation. Even after a Host plugin reload, they can be recovered from the conversation's unclaimed messages.
+- Once they enter a request, annotations remain in the conversation history as part of that turn, so later turns can still see them.
 
-> 如果 agent 正在运行时你新增了批注，又立刻发了一条排队消息：这条批注会尽量跟随下一条真正
-> 开始的回合，而不会插进当前回合的中间步骤。
+> If you add an annotation while the agent is running and then immediately send a queued message, the annotation follows the next turn that actually starts rather than being inserted into the middle of the current turn.
 
-## 隐私与数据
+## Troubleshooting
 
-- 批注内容只保存在**本机**：Host 进程内存中有一份待发送列表，当前会话日志中有一条隐藏的
-  context 消息。
-- 原文定位锚点（消息 key + 文本偏移）只用于浏览器绘制高亮和跳转；它随隐藏 context 的
-  `source` 元数据保存在本机会话记录中，可能出现在 Trajectory、会话导出或诊断视图中，但不会
-  进入模型可见的 prompt 文本，也不包含额外内容。
-- 不会上传到任何第三方服务。发送时，批注会随你的下一条 prompt 一起发给**当前会话所使用的
-  模型服务商**，与正常对话请求相同。
-- 客户端代码里没有令牌、API Key 或 Cookie 值；`/api/inplace-annotate/pending` 使用浏览器
-  现有的 DSH 登录态，由 DSH Connection 校验，仅允许本机 owner 访问。
-- 插件不包含遥测，也不会主动访问外部网络。
-- **注意**：批注会进入会话日志，因此在 Trajectory、会话导出或诊断视图中可能可见。请勿在批注
-  中写入密码、密钥等敏感信息。
-- 待发送批注依赖 Host 进程内存；Host 进程重启后，若该会话重新变为活动状态，会尝试从会话中
-  恢复；否则可能丢失。
+**No toolbar appears after selecting text**
 
-## 限制与已知行为
+- Make sure you selected text in a finished reply, not streaming output, a tool card, or the input box.
+- Make sure the page has been refreshed **after** installing the plugin.
+- Make sure `@local/dsh-inplace-annotate` is enabled in Plugin Manager and did not fail to activate.
+- Open your browser devtools and check for client errors such as `slot entry crashed`.
 
-- 仅 Web GUI；Desktop 原生窗口和 TUI 不支持本插件的界面。
-- 只有**已定稿**的回复文本可以被选中批注；流式输出中的文字、工具卡片、注入的上下文不参与。
-- 插件无法区分你选中的是用户消息还是 assistant 消息；两边都可以批注。
-- 已保存的批注会在 Chat 视图的原文上叠加黄色荧光高亮和右上角类别图标；高亮是浏览器绘制的
-  视觉层，不修改消息内容，也不会发送给模型。
-- 高亮只在原文当前已加载且可见时显示：折叠的推理/过程分组、未加载的历史回合，或切换到 Chat
-  以外的视图时不会画高亮。点击条目会尝试展开对应 disclosure；找不到时给出提示。
-- 定位是 best-effort：消息被重新生成、编辑，或页面结构变化后，高亮/跳转可能失效，但批注本身
-  会保留。
-- 没有定位锚点的旧批注（例如在重载 Host 之前创建的批注）会按原文在 Chat 中查找匹配；如果
-  同一段文字出现多次，可能定位到第一处。删除后重新批注可生成新的定位锚点。
-- 高亮依赖浏览器的 CSS Custom Highlight API；不支持该 API 时只显示角标和列表，不报错。
-- 每个会话最多 **20 条**批注；单段所选文字最多 **3000 字符**；单条批注最多 **3000 字符**。
-- 本插件会覆盖内置的「引用文本」选区单元格，并在操作条中保留引用能力；卸载后自动恢复。如果之后
-  有其他插件注册同一个单元格，后注册者生效。
-- 多个标签页同时编辑同一会话时，以最后一次写入为准。
+**Saving an annotation reports a failure**
 
-## 故障排查
+- Check whether the DSH page is still signed in; refresh the page and try again.
+- Make sure the Host process is still running and `@local/dsh-inplace-annotate` is enabled.
+- If you just changed plugin code, reinstall and refresh the page.
 
-**选中文字后没有出现操作条**
+**The bar does not clear after sending a message**
 
-- 确认选中的是已完成回复中的文字，而不是流式输出、工具卡片或输入框。
-- 确认当前页面是在安装插件**之后**刷新过的。
-- 确认 `@local/dsh-inplace-annotate` 在 Plugin Manager 中已启用，且没有激活失败。
-- 打开浏览器开发者工具，查看是否有 `slot entry crashed` 之类的客户端报错。
+- Wait about 1.5 seconds; the UI polls the Host for sent status.
+- If it still does not clear, that message may not have actually started the next turn (for example, a command message). Delete or clear the entries manually.
+- If the Host plugin was just reloaded, wait a moment and refresh the page.
 
-**保存批注时提示失败**
+**Annotations do not appear in the agent's reply**
 
-- 检查 DSH 页面是否仍处于登录状态；刷新页面后重试。
-- 确认 Host 进程仍在运行，且 `@local/dsh-inplace-annotate` 已启用。
-- 如果刚改过插件代码，重新安装并刷新页面。
+- Make sure the annotations were already in the pending bar **before** you sent the message.
+- Make sure the agent has claimed the message. If it is still working on the previous turn, annotations wait for it to become idle and go out with the queue.
+- Annotations are feedback context for the agent, and it is not guaranteed to restate them one by one. Follow up with "address each annotation above".
 
-**发送消息后批注栏没有清空**
+**Annotations are not highlighted / cannot jump**
 
-- 等待约 1.5 秒，界面会轮询 Host 的已发送状态。
-- 如果仍不清空，可能是该条消息没有真正进入下一轮（例如命令消息）；可以手动删除或清空。
-- 如果 Host 插件刚重载，稍等片刻再刷新页面。
+- Make sure you are in the **Chat** view; other views such as Trajectory do not draw text highlights.
+- If the passage is inside a collapsed reasoning/process group, expand it first, or click the entry and let the plugin try to expand it.
+- If the turn has not loaded yet, scroll up so Chat loads history, then click the entry.
+- If the message was regenerated or edited, the original text may have changed. The annotation remains in the list, but locating may fail.
+- Early annotations created without anchors match by original text. If the text has changed or appears multiple times, matching may fail or pick the wrong spot. Delete and re-annotate to fix it.
+- Right after updating the plugin, make sure the Host plugin was reloaded and the page refreshed. Refreshing the page without reloading the Host shows the list but no highlights.
 
-**批注没有出现在 agent 的回复里**
+**Want the built-in quote button back after uninstalling or disabling**
 
-- 确认批注是在发送消息**之前**就已在待发送栏中。
-- 确认 agent 已领取这条消息；如果它正在处理上一轮，批注会等空闲后再随队发送。
-- 批注是给 agent 的反馈上下文，不保证它会逐条复述；可以再追问「请逐条回应上面的批注」。
+- Remove or disable the plugin in Plugin Manager, then refresh the page. The built-in **Quote text** button returns.
 
-**批注没有高亮 / 无法跳转**
+## Uninstalling
 
-- 确认当前在 **Chat** 视图；Trajectory 等其他视图不绘制原文高亮。
-- 如果原文在折叠的推理/过程分组里，先展开该分组，或直接点击条目让插件尝试展开。
-- 如果该回合还没有加载，先向上滚动让 Chat 加载历史，再点击条目。
-- 如果消息被重新生成或编辑过，原文可能已经变化；批注仍在列表里，但定位可能失效。
-- 早期创建、没有定位锚点的批注会按原文自动匹配；如果原文已变化或同一段文字出现多次，可能找不到或找错，删除后重新批注可修复。
-- 刚更新插件时，确认 Host 插件已重载且页面已刷新；只刷新页面而没重载 Host 时，列表正常但不会出现高亮。
+1. Disable or remove `@local/dsh-inplace-annotate` in Plugin Manager.
+2. Refresh the DSH page.
+3. On uninstall, the Host cleans up annotations that are still pending; annotations already sent remain as conversation history.
 
-**卸载或禁用后想恢复内置引用按钮**
+To turn it off temporarily, set the `inplace-annotate` line in the profile's `cordis.patch.yml` to `disabled: true`.
 
-- 在 Plugin Manager 中移除或停用本插件，然后刷新页面。内置「引用文本」按钮会恢复。
-
-## 卸载
-
-1. 在 Plugin Manager 中停用或移除 `@local/dsh-inplace-annotate`。
-2. 刷新 DSH 页面。
-3. 卸载时 Host 会清理仍待发送的批注消息；已经发送过的批注会作为会话历史保留。
-
-如果只想临时关闭，可以在 profile 的 `cordis.patch.yml` 中把 `inplace-annotate` 这一行设为
-`disabled: true`。
-
-## 开发者验证
+## Developer checks
 
 ```sh
 node --check index.js
@@ -203,21 +160,21 @@ node --check client.js
 node --test tests/host.test.mjs
 ```
 
-手工验收（需刷新页面；Host 改动需重载插件）：
+Manual acceptance (refresh the page; Host changes require a plugin reload):
 
-1. 分别保存同意 / 不同意 / 批注，确认原文出现黄色高亮、类别色下划线和右上角图标。
-2. 同一段加多条批注，确认角标错开。
-3. 点击列表条目，确认滚动到原文并短暂高亮。
-4. 折叠包含批注的分组后点击条目，确认自动展开并跳转，或给出提示。
-5. 收起列表后确认高亮保留，再展开恢复。
-6. 刷新页面、切换会话/视图、切换明暗主题，确认高亮和角标位置正确或安全消失。
+1. Save one Agree, one Disagree, and one Comment; confirm the yellow highlight, category-colored underline, and corner badge appear.
+2. Add several annotations to the same passage and confirm the badges are offset from each other.
+3. Click a list entry and confirm it scrolls to the passage and briefly highlights it.
+4. Collapse the group containing an annotation, then click the entry; confirm it auto-expands and jumps, or shows a notice.
+5. Collapse the list, confirm highlights remain, then expand it again.
+6. Refresh the page, switch conversations and views, and toggle light/dark themes; confirm highlights and badge positions are correct or disappear safely.
 
-项目文件：
+Project files:
 
-| 文件 | 作用 |
+| File | Purpose |
 |---|---|
-| `index.js` | Host 半：鉴权路由、按会话的批注存储、可选定位锚点校验、会话待领取消息镜像 |
-| `client.js` | Client 半：选区操作条、批注输入框、待发送批注栏、高亮/角标、跳转、与 Host 同步 |
-| `locale/*.json` | Plugin Manager 中显示的标题和描述 |
-| `cordis.patch.yml` | bundle 的补丁层，声明安装时要插入的插件行 |
-| `icon.svg` | 插件图标 |
+| `index.js` | Host side: authenticated routes, per-conversation annotation storage, optional anchor validation, mirroring into the conversation's unclaimed messages |
+| `client.js` | Client side: selection toolbar, comment input, pending annotations bar, highlights and badges, jumping, syncing with the Host |
+| `locale/*.json` | Title and description shown in Plugin Manager |
+| `cordis.patch.yml` | The bundle's patch layer, declaring the plugin line inserted at install time |
+| `icon.svg` | Plugin icon |
