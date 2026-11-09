@@ -39,6 +39,18 @@ const MAX_BODY_BYTES = 64 * 1024
 /** Maximum Session id length accepted on the wire. */
 const MAX_SESSION_ID_CHARS = 200
 
+/** Maximum characters kept from one DOM anchor key. */
+const MAX_ANCHOR_KEY_CHARS = 500
+
+/** Maximum visible-text offset kept from one DOM anchor. */
+const MAX_ANCHOR_OFFSET = 10_000_000
+
+/** Maximum Turn number kept from one DOM anchor. */
+const MAX_ANCHOR_TURN = 1_000_000_000
+
+/** Maximum source ordinal kept from one DOM anchor. */
+const MAX_ANCHOR_SOURCE = 1000
+
 /** The three annotation kinds. */
 const KINDS = new Set(['agree', 'disagree', 'comment'])
 
@@ -63,6 +75,57 @@ function clampText(value, limit) {
   if (typeof value !== 'string') return ''
   const trimmed = value.trim()
   return trimmed.length <= limit ? trimmed : `${trimmed.slice(0, limit - 1)}…`
+}
+
+/**
+ * Clamp one anchor key.
+ * @param value - untrusted key candidate.
+ * @returns trimmed key, or undefined when absent, blank, or too long.
+ */
+function readAnchorKey(value) {
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  return trimmed === '' || trimmed.length > MAX_ANCHOR_KEY_CHARS ? undefined : trimmed
+}
+
+/**
+ * Read one bounded non-negative integer from an anchor.
+ * @param value - untrusted number.
+ * @param max - inclusive ceiling.
+ * @returns safe integer, or undefined when invalid.
+ */
+function readAnchorInteger(value, max) {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0 || value > max) return undefined
+  return value
+}
+
+/**
+ * Normalize the optional browser-side DOM anchor attached to one annotation.
+ *
+ * The anchor is display metadata only: it lets the Web client paint highlights
+ * and jump back to the passage after a reload. It never enters the model-facing
+ * review text. Invalid anchors are dropped instead of rejecting the annotation.
+ * @param value - untrusted anchor candidate.
+ * @returns normalized anchor, or undefined when unusable.
+ */
+function normalizeAnchor(value) {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined
+  const flow = readAnchorKey(value.flow)
+  const node = readAnchorKey(value.node)
+  if (flow === undefined && node === undefined) return undefined
+  const start = readAnchorInteger(value.start, MAX_ANCHOR_OFFSET)
+  const end = readAnchorInteger(value.end, MAX_ANCHOR_OFFSET)
+  if (start === undefined || end === undefined || end <= start) return undefined
+  const anchor = {}
+  if (flow !== undefined) anchor.flow = flow
+  if (node !== undefined) anchor.node = node
+  const turn = readAnchorInteger(value.turn, MAX_ANCHOR_TURN)
+  if (turn !== undefined) anchor.turn = turn
+  const source = readAnchorInteger(value.source, MAX_ANCHOR_SOURCE)
+  if (source !== undefined) anchor.source = source
+  anchor.start = start
+  anchor.end = end
+  return anchor
 }
 
 /**
@@ -91,7 +154,8 @@ function normalizeAnnotations(value) {
     if (id === '' || id.length > MAX_SESSION_ID_CHARS) id = `inplace-annotate-${randomUUID()}`
     if (seen.has(id)) continue
     seen.add(id)
-    annotations.push({ id, kind, quote, ...(note === '' ? {} : { note }) })
+    const anchor = normalizeAnchor(candidate.anchor)
+    annotations.push({ id, kind, quote, ...(note === '' ? {} : { note }), ...(anchor === undefined ? {} : { anchor }) })
   }
   return annotations
 }
@@ -156,7 +220,7 @@ function json(status, payload) {
  * @param ctx - Host context carrying connection and agents.
  */
 export function apply(ctx) {
-  /** @type {Map<string, Array<{id: string, kind: string, quote: string, note?: string}>>} */
+  /** @type {Map<string, Array<{id: string, kind: string, quote: string, note?: string, anchor?: {flow?: string, node?: string, turn?: number, source?: number, start: number, end: number}}>>} */
   const pending = new Map()
   /** @type {Map<string, string>} */
   const injected = new Map()

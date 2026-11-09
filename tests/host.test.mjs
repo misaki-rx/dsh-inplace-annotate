@@ -117,6 +117,15 @@ function createHarness() {
 const AGREE = { id: 'a1', kind: 'agree', quote: 'First passage' }
 const COMMENT = { id: 'a2', kind: 'comment', quote: 'line one\nline two', note: 'Please revise' }
 const DISAGREE = { id: 'a3', kind: 'disagree', quote: 'Third passage' }
+const ANCHOR = {
+  flow: 'node:message-1',
+  node: 'node:message-1',
+  turn: 4,
+  source: 1,
+  start: 7,
+  end: 20,
+}
+const ANCHORED = { id: 'a4', kind: 'agree', quote: 'First passage', anchor: ANCHOR }
 
 test('posts, stores, and mirrors annotations into the next step', async () => {
   const harness = createHarness()
@@ -244,6 +253,60 @@ test('clamps overlong text to the documented ceilings', async () => {
   assert.equal(stored.quote.length, 3000)
   assert.equal(stored.note.length, 3000)
   assert.ok(stored.quote.endsWith('…'))
+})
+
+test('round-trips one optional DOM anchor without leaking it into the prompt', async () => {
+  const harness = createHarness()
+  const agent = harness.agent('s1')
+  const posted = await harness.request('POST', { sessionId: 's1', annotations: [ANCHORED] })
+  assert.equal(posted.status, 200)
+  assert.deepEqual(posted.body.annotations, [ANCHORED])
+  assert.equal(agent.inbox.nextStep.length, 1)
+  assert.deepEqual(agent.inbox.nextStep[0].source.annotations, [ANCHORED])
+  const text = agent.inbox.nextStep[0].content[0].text
+  assert.match(text, /> First passage/u)
+  assert.doesNotMatch(text, /anchor|node:message-1|"flow"/u)
+
+  const read = await harness.request('GET')
+  assert.deepEqual(read.body.annotations, [ANCHORED])
+})
+
+test('drops unusable anchors but keeps the annotation', async () => {
+  const harness = createHarness()
+  harness.agent('s1')
+  const posted = await harness.request('POST', {
+    sessionId: 's1',
+    annotations: [
+      { id: 'bad-order', kind: 'comment', quote: 'Target', note: 'Revise', anchor: { start: 9, end: 3 } },
+      { id: 'bad-key', kind: 'agree', quote: 'Long key', anchor: { flow: 'f'.repeat(501), start: 0, end: 1 } },
+      {
+        id: 'partial',
+        kind: 'agree',
+        quote: 'Optional fields',
+        anchor: { node: 'node:ok', turn: -1, source: 1.5, start: 0, end: 2 },
+      },
+    ],
+  })
+  assert.equal(posted.status, 200)
+  const stored = posted.body.annotations
+  assert.equal(stored[0].anchor, undefined)
+  assert.equal(stored[1].anchor, undefined)
+  assert.deepEqual(stored[2].anchor, { node: 'node:ok', start: 0, end: 2 })
+})
+
+test('restores an optional anchor from an inbox mirror', async () => {
+  const harness = createHarness()
+  const agent = harness.agent('s3')
+  agent.inbox.nextStep.push({
+    id: 'inplace-annotate-anchored',
+    role: 'user',
+    content: [{ type: 'text', text: 'old' }],
+    source: { kind: 'inplace-annotate', annotations: [ANCHORED] },
+  })
+  harness.emit('agent/created', { agent })
+  const read = await harness.request('GET', undefined, 's3')
+  assert.deepEqual(read.body.annotations, [ANCHORED])
+  assert.deepEqual(agent.inbox.nextStep[0].source.annotations, [ANCHORED])
 })
 
 test('rejects malformed requests', async () => {
