@@ -22,6 +22,7 @@
 - [故障排查](#故障排查)
 - [卸载](#卸载)
 - [开发者验证](#开发者验证)
+- [许可证](#许可证)
 
 ---
 
@@ -178,3 +179,7 @@ node --test tests/host.test.mjs
 | `locale/*.json` | Plugin Manager 中显示的标题和描述 |
 | `cordis.patch.yml` | bundle 的补丁层，声明安装时要插入的插件行 |
 | `icon.svg` | 插件图标 |
+
+## 许可证
+
+本项目采用 [MIT License](LICENSE) 许可。

@@ -22,6 +22,7 @@ In the DSH Web chat, select a passage in an agent reply and mark it **Agree**, *
 - [Troubleshooting](#troubleshooting)
 - [Uninstalling](#uninstalling)
 - [Developer checks](#developer-checks)
+- [License](#license)
 
 ---
 
@@ -178,3 +179,7 @@ Project files:
 | `locale/*.json` | Title and description shown in Plugin Manager |
 | `cordis.patch.yml` | The bundle's patch layer, declaring the plugin line inserted at install time |
 | `icon.svg` | Plugin icon |
+
+## License
+
+Released under the [MIT License](LICENSE).
