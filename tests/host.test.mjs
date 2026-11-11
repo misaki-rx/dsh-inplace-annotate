@@ -117,6 +117,7 @@ function createHarness() {
 const AGREE = { id: 'a1', kind: 'agree', quote: 'First passage' }
 const COMMENT = { id: 'a2', kind: 'comment', quote: 'line one\nline two', note: 'Please revise' }
 const DISAGREE = { id: 'a3', kind: 'disagree', quote: 'Third passage' }
+const QUESTION = { id: 'a5', kind: 'question', quote: 'Unclear passage', note: 'This note must be dropped' }
 const ANCHOR = {
   flow: 'node:message-1',
   node: 'node:message-1',
@@ -152,6 +153,29 @@ test('posts, stores, and mirrors annotations into the next step', async () => {
   const read = await harness.request('GET')
   assert.equal(read.status, 200)
   assert.deepEqual(read.body.annotations, [AGREE, COMMENT])
+})
+
+test('accepts question annotations and asks the model to explain', async () => {
+  const harness = createHarness()
+  const agent = harness.agent('s1')
+  const expected = { id: 'a5', kind: 'question', quote: 'Unclear passage' }
+  const posted = await harness.request('POST', { sessionId: 's1', annotations: [QUESTION] })
+  assert.equal(posted.status, 200)
+  assert.deepEqual(posted.body.annotations, [expected])
+
+  assert.equal(agent.inbox.nextStep.length, 1)
+  const message = agent.inbox.nextStep[0]
+  assert.deepEqual(message.source.annotations, [expected])
+  const text = message.content[0].text
+  assert.match(text, /1\. QUESTION/u)
+  assert.match(text, /unsure about that passage/u)
+  assert.match(text, /explain it further/u)
+  assert.match(text, /> Unclear passage/u)
+  assert.doesNotMatch(text, /This note must be dropped/u)
+
+  const read = await harness.request('GET')
+  assert.equal(read.status, 200)
+  assert.deepEqual(read.body.annotations, [expected])
 })
 
 test('replaces the same inbox message while idle', async () => {

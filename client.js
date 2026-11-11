@@ -24,10 +24,11 @@ window.__ModuleLoader__.load({
     const HIGHLIGHT_NAMES = {
       agree: 'inplace-annotate-agree',
       disagree: 'inplace-annotate-disagree',
+      question: 'inplace-annotate-question',
       comment: 'inplace-annotate-comment',
     }
     const FOCUS_HIGHLIGHT = 'inplace-annotate-focus'
-    const HIGHLIGHT_KINDS = ['agree', 'disagree', 'comment']
+    const HIGHLIGHT_KINDS = ['agree', 'disagree', 'question', 'comment']
 
     /** Inline SVG path data shared by React controls and the DOM badge layer. */
     const GLYPHS = {
@@ -38,6 +39,10 @@ window.__ModuleLoader__.load({
       disagree: [
         'M17 14V2',
         'M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z',
+      ],
+      question: [
+        'M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3',
+        'M12 17h.01',
       ],
       comment: [
         'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
@@ -55,6 +60,7 @@ window.__ModuleLoader__.load({
       'actions.label': 'Review notes',
       'actions.agree': 'Agree',
       'actions.disagree': 'Disagree',
+      'actions.question': 'Question',
       'actions.comment': 'Comment',
       'actions.quote': 'Quote',
       'comment.placeholder': 'What should change?',
@@ -76,6 +82,7 @@ window.__ModuleLoader__.load({
       'dock.notFound': 'The annotated passage is not visible. In Chat view, scroll to load it or expand that section.',
       'kind.agree': 'Agree',
       'kind.disagree': 'Disagree',
+      'kind.question': 'Question',
       'kind.comment': 'Comment',
       'limit.reached': 'At most 20 notes can be attached.',
       'error.save': 'Review notes were not saved. Check the connection and try again.',
@@ -88,6 +95,7 @@ window.__ModuleLoader__.load({
       'actions.label': '评论批注',
       'actions.agree': '同意',
       'actions.disagree': '不同意',
+      'actions.question': '疑问',
       'actions.comment': '批注',
       'actions.quote': '引用',
       'comment.placeholder': '这条内容应该怎么改？',
@@ -109,6 +117,7 @@ window.__ModuleLoader__.load({
       'dock.notFound': '批注对应的原文当前不可见，请在 Chat 视图滚动加载或展开对应段落。',
       'kind.agree': '同意',
       'kind.disagree': '不同意',
+      'kind.question': '疑问',
       'kind.comment': '批注',
       'limit.reached': '最多只能附加 20 条批注。',
       'error.save': '批注未保存，请检查连接后重试。',
@@ -123,6 +132,7 @@ window.__ModuleLoader__.load({
 .ann-action:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
 .ann-action[data-kind="agree"]:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-success-primary)}
 .ann-action[data-kind="disagree"]:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary)}
+.ann-action[data-kind="question"]:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-warn-primary)}
 .ann-action[data-kind="comment"]:hover,.ann-action[data-kind="quote"]:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-brand-primary)}
 .ann-action:disabled{opacity:.5;cursor:default}
 .ann-sep{width:1px;height:16px;background:var(--dsw-alias-border-l1);margin:0 2px}
@@ -152,6 +162,7 @@ window.__ModuleLoader__.load({
 .ann-badge{font-size:11px;line-height:16px;padding:0 6px;border-radius:999px;border:1px solid currentColor}
 .ann-badge--agree{color:var(--dsw-alias-state-success-primary)}
 .ann-badge--disagree{color:var(--dsw-alias-state-error-primary)}
+.ann-badge--question{color:var(--dsw-alias-state-warn-primary)}
 .ann-badge--comment{color:var(--dsw-alias-brand-primary)}
 .ann-row-quote{color:var(--dsw-alias-label-secondary);white-space:pre-wrap;word-break:break-word;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .ann-row-note{white-space:pre-wrap;word-break:break-word}
@@ -170,10 +181,12 @@ window.__ModuleLoader__.load({
 .ann-marker svg{width:11px;height:11px;display:block}
 .ann-marker--agree{color:var(--dsw-alias-state-success-primary)}
 .ann-marker--disagree{color:var(--dsw-alias-state-error-primary)}
+.ann-marker--question{color:var(--dsw-alias-state-warn-primary)}
 .ann-marker--comment{color:var(--dsw-alias-brand-primary)}
 .ann-marker--focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
 ::highlight(inplace-annotate-agree){background-color:rgba(255,213,0,.28);background-color:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 24%,transparent);text-decoration:underline;text-decoration-color:var(--dsw-alias-state-success-primary);text-decoration-thickness:1.5px;text-underline-offset:2px}
 ::highlight(inplace-annotate-disagree){background-color:rgba(255,213,0,.28);background-color:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 24%,transparent);text-decoration:underline;text-decoration-color:var(--dsw-alias-state-error-primary);text-decoration-thickness:1.5px;text-underline-offset:2px}
+::highlight(inplace-annotate-question){background-color:rgba(255,213,0,.28);background-color:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 24%,transparent);text-decoration:underline;text-decoration-color:var(--dsw-alias-state-warn-primary);text-decoration-thickness:1.5px;text-underline-offset:2px}
 ::highlight(inplace-annotate-comment){background-color:rgba(255,213,0,.28);background-color:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 24%,transparent);text-decoration:underline;text-decoration-color:var(--dsw-alias-brand-primary);text-decoration-thickness:1.5px;text-underline-offset:2px}
 ::highlight(inplace-annotate-focus){background-color:rgba(59,130,246,.32);background-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 30%,transparent);text-decoration:underline;text-decoration-color:var(--dsw-alias-brand-primary);text-decoration-thickness:2px;text-underline-offset:2px}
 `
@@ -495,7 +508,7 @@ window.__ModuleLoader__.load({
     function syncHighlights(annotations, focusId, ranges) {
       const registry = highlightRegistry()
       if (registry === null) return
-      const groups = { agree: [], disagree: [], comment: [] }
+      const groups = { agree: [], disagree: [], question: [], comment: [] }
       let focused = null
       for (const annotation of annotations) {
         const located = ranges.get(annotation.id)
@@ -1478,7 +1491,7 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * Floating Agree / Disagree / Comment / Quote surface.
+     * Floating Agree / Disagree / Question / Comment / Quote surface.
      *
      * Registered for the `quote` key so it replaces the built-in quote pill
      * (the single Chat surface admits the first interaction that opens), and for
@@ -1591,6 +1604,7 @@ window.__ModuleLoader__.load({
         notice === null ? null : h('span', { className: 'ann-error', role: 'status' }, notice),
         h(ActionButton, { kind: 'agree', label: t('actions.agree'), disabled: full, onClick: () => save('agree', '') }),
         h(ActionButton, { kind: 'disagree', label: t('actions.disagree'), disabled: full, onClick: () => save('disagree', '') }),
+        h(ActionButton, { kind: 'question', label: t('actions.question'), disabled: full, onClick: () => save('question', '') }),
         h(ActionButton, { kind: 'comment', label: t('actions.comment'), disabled: full, onClick: () => setMode('comment') }),
         h('span', { className: 'ann-sep', 'aria-hidden': true }),
         h(ActionButton, { kind: 'quote', label: t('actions.quote'), onClick: quote }),

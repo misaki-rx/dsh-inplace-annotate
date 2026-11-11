@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-In the DSH Web chat, select a passage in an agent reply and mark it **Agree**, **Disagree**, or **Comment**. Annotations are held in the current conversation and attached automatically when you send your next message. The message you send stays clean: annotation text never shows up in the chat transcript.
+In the DSH Web chat, select a passage in an agent reply and mark it **Agree**, **Disagree**, **Question**, or **Comment**. Annotations are held in the current conversation and attached automatically when you send your next message. The message you send stays clean: annotation text never shows up in the chat transcript.
 
 - Made for reviewing long replies: annotate as you read, then give all your feedback at once.
 - Every annotation carries the passage you selected, so the agent knows exactly which part you mean.
@@ -51,8 +51,8 @@ After changing plugin code, reload the plugin and refresh the page. Editing file
 
 1. Wait for an agent reply to **finish** (streaming complete).
 2. Select a passage in the reply with your mouse.
-3. A toolbar appears above the selection: **Agree / Disagree / Comment / Quote**.
-4. Clicking **Agree** or **Disagree** records it immediately. Clicking **Comment** opens an input box; write your note and press `Cmd/Ctrl+Enter` to save. The passage is then highlighted and gets a corner badge.
+3. A toolbar appears above the selection: **Agree / Disagree / Question / Comment / Quote**.
+4. Clicking **Agree**, **Disagree**, or **Question** records it immediately. Clicking **Comment** opens an input box; write your note and press `Cmd/Ctrl+Enter` to save. The passage is then highlighted and gets a corner badge.
 5. A pending annotations bar (labeled **Review notes** in the UI) appears above the input box, listing the annotations you have accumulated. Click an entry's text area or its right-hand arrow to jump back to the corresponding passage.
 6. Type and send your next message as usual. Annotations go to the agent with that message; your own bubble shows only the text you typed.
 7. Once the agent picks up the message, the pending annotations bar clears itself within about 1.5 seconds.
@@ -60,8 +60,9 @@ After changing plugin code, reload the plugin and refresh the page. Editing file
 A typical flow:
 
 > - Select "this approach introduces an extra network request" → **Disagree**
+> - Select "the cache is invalidated after every write" → **Question**
 > - Select "error-handling suggestion" → **Comment**: "Please give a concrete retry strategy with backoff timings"
-> - Send: "Revise based on the feedback above"
+> - Send: "Address the feedback and questions above"
 
 ## Using annotations
 
@@ -69,12 +70,13 @@ A typical flow:
 |---|---|---|
 | **Agree** | You endorse the selected text | Records the passage; no change requested from the agent |
 | **Disagree** | You reject the selected text | Records the passage; the agent should revise or reconsider it |
+| **Question** | You are unsure about the selected text and want the agent to explain it further | Records the passage immediately; no note is required |
 | **Comment** | Enter specific feedback | Records the passage plus your note; the note can be edited later |
 | **Quote** | Insert the selected text into the input box (the existing quote feature) | No annotation; the text only goes into the input box |
-| **Highlight** | Saved passages get a yellow highlighter background and a category-colored underline | A corner badge shows Agree / Disagree / Comment |
+| **Highlight** | Saved passages get a yellow highlighter background and a category-colored underline | A corner badge shows Agree / Disagree / Question / Comment |
 | **Jump** | Click an entry's text area or its right-hand arrow | Scrolls to the passage and briefly highlights it |
 
-- Highlights share one yellow highlighter background. The underline and corner badge are colored by category: green for Agree, red for Disagree, blue for Comment.
+- Highlights share one yellow highlighter background. The underline and corner badge are colored by category: green for Agree, red for Disagree, amber for Question, and blue for Comment.
 - Both the entry's text area and its right-hand arrow jump to the passage. The entry flashes briefly when the jump succeeds.
 - In the **Comment** input box, `Cmd/Ctrl+Enter` saves and `Esc` cancels back to the toolbar.
 - All buttons work with the keyboard: Tab to focus, Enter or Space to activate.
@@ -88,7 +90,7 @@ The bar sits directly above the input box and lists, in creation order, every an
 - **Collapse / expand**: the chevron button at the top right of the list. Collapsing hides the list but keeps the highlights.
 - **Clear all**: the first click turns into **Confirm clear**; a second click actually clears.
 - **Jump**: click an entry's text area or its right-hand arrow to scroll to the passage and briefly highlight it.
-- **Edit**: only **Comment** entries have an editable note; changes sync immediately on save.
+- **Edit**: only **Comment** entries have an editable note; changes sync immediately on save. **Question** is a one-click mark and has no note to edit.
 - **Delete**: removes a single annotation.
 - The list scrolls inside the bar once it exceeds the height limit; when collapsed it no longer takes up height.
 - Each entry shows a summary of the selected passage and, for comments, your note.
@@ -163,12 +165,13 @@ node --test tests/host.test.mjs
 
 Manual acceptance (refresh the page; Host changes require a plugin reload):
 
-1. Save one Agree, one Disagree, and one Comment; confirm the yellow highlight, category-colored underline, and corner badge appear.
+1. Save one Agree, one Disagree, one Question, and one Comment; confirm the yellow highlight, category-colored underline, and corner badge appear, and that Question saves without opening an input box.
 2. Add several annotations to the same passage and confirm the badges are offset from each other.
 3. Click a list entry and confirm it scrolls to the passage and briefly highlights it.
 4. Collapse the group containing an annotation, then click the entry; confirm it auto-expands and jumps, or shows a notice.
 5. Collapse the list, confirm highlights remain, then expand it again.
 6. Refresh the page, switch conversations and views, and toggle light/dark themes; confirm highlights and badge positions are correct or disappear safely.
+7. Send a message after adding a Question; confirm the agent explains the selected passage and your chat bubble contains only your typed text.
 
 Project files:
 

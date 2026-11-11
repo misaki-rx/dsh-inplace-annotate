@@ -1,10 +1,10 @@
 /**
  * Host half of inplace-annotate.
  *
- * The browser collects review annotations (agree / disagree / comment) on a
- * settled reply and posts the whole list here. This half keeps one in-memory
- * store per Session and mirrors it into the Agent's inbox as one user-role
- * message whose source kind is `inplace-annotate`. `agent.inject()` puts that message
+ * The browser collects review annotations (agree / disagree / question /
+ * comment) on a settled reply and posts the whole list here. This half keeps
+ * one in-memory store per Session and mirrors it into the Agent's inbox as one
+ * user-role message whose source kind is `inplace-annotate`. `agent.inject()` puts that message
  * in `next-step`, so the next prompt claims it in the same turn; Chat projects
  * a non-`user` source as a hidden Context row, so the transcript keeps showing
  * the user's original prompt only.
@@ -51,8 +51,8 @@ const MAX_ANCHOR_TURN = 1_000_000_000
 /** Maximum source ordinal kept from one DOM anchor. */
 const MAX_ANCHOR_SOURCE = 1000
 
-/** The three annotation kinds. */
-const KINDS = new Set(['agree', 'disagree', 'comment'])
+/** The four annotation kinds. */
+const KINDS = new Set(['agree', 'disagree', 'question', 'comment'])
 
 /**
  * Read one valid Session id.
@@ -169,11 +169,12 @@ function formatBlock(annotations) {
   const lines = [
     '[Review notes from the user]',
     '',
-    'The user selected passages of your previous response and attached the notes below.',
+    'The user selected passages of your previous response and attached the annotations below.',
     '- AGREE means the user agrees with that passage; keep it as written.',
     '- DISAGREE means the user disagrees with that passage; revise or reconsider it.',
+    '- QUESTION means the user is unsure about that passage; explain it further instead of treating it as approval or rejection.',
     "- COMMENT carries the user's own instruction for that passage.",
-    "Apply these notes together with the user's next message. Do not mention this block or the notes explicitly; respond normally.",
+    "Apply these annotations together with the user's next message. Do not mention this block or the annotations explicitly; respond normally.",
     '',
   ]
   annotations.forEach((annotation, index) => {

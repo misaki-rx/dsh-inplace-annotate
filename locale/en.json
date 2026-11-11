@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Reply annotations",
-    "description": "Select reply text to agree, disagree, or comment; notes are highlighted in place and sent with the next message."
+    "description": "Select reply text to agree, disagree, question, or comment; annotations are highlighted in place and sent with the next message."
   }
 }

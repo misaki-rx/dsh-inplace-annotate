@@ -1,8 +1,8 @@
 {
   "name": "@local/dsh-inplace-annotate",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "private": true,
-  "description": "Select reply text to agree, disagree, or comment; notes are highlighted in place and sent with the next message.",
+  "description": "Select reply text to agree, disagree, question, or comment; annotations are highlighted in place and sent with the next message.",
   "type": "module",
   "exports": {
     ".": "./index.js",
