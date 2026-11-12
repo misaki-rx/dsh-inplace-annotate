@@ -172,6 +172,7 @@ Manual acceptance (refresh the page; Host changes require a plugin reload):
 5. Collapse the list, confirm highlights remain, then expand it again.
 6. Refresh the page, switch conversations and views, and toggle light/dark themes; confirm highlights and badge positions are correct or disappear safely.
 7. Send a message after adding a Question; confirm the agent explains the selected passage and your chat bubble contains only your typed text.
+8. Double-click the blank part of the window titlebar; confirm the window still drags and zooms/maximizes, both with and without pending annotations.
 
 Project files:
 

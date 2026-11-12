@@ -1221,7 +1221,12 @@ window.__ModuleLoader__.load({
         layer = document.createElement('div')
         layer.className = 'ann-layer'
         layer.setAttribute('aria-hidden', 'true')
-        document.body.append(layer)
+        // DSH marks every direct body child except #root as no-drag, and
+        // draggable regions compose in document order. Keep the overlay inside
+        // #root and ahead of the chrome so the titlebar drag rows stay last.
+        const host = document.getElementById('root')
+        if (host === null) document.body.prepend(layer)
+        else host.prepend(layer)
         ensureRoot()
         document.addEventListener('scroll', onScroll, true)
         window.addEventListener('resize', onResize)
@@ -1285,8 +1290,10 @@ window.__ModuleLoader__.load({
      */
     function useAnnotationDecorations(annotations, focusId) {
       const controllerRef = React.useRef(null)
+      // The full-screen overlay and observers are only useful once a passage exists.
+      const active = annotations.length > 0
       React.useEffect(() => {
-        if (typeof document === 'undefined') return undefined
+        if (!active || typeof document === 'undefined') return undefined
         const controller = createDecorationController()
         controllerRef.current = controller
         controller.start()
@@ -1294,7 +1301,7 @@ window.__ModuleLoader__.load({
           controller.destroy()
           controllerRef.current = null
         }
-      }, [])
+      }, [active])
       React.useEffect(() => {
         controllerRef.current?.update(annotations, focusId)
       }, [annotations, focusId])
