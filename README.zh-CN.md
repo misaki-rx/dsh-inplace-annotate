@@ -9,6 +9,12 @@
 - 已批注的原文会加上荧光笔式的高亮和右上角角标；点击待发送列表中的条目即可跳回原文。
 - 只作用于当前会话。卸载插件后，内置的「引用文本」按钮会恢复。
 
+## 效果预览
+
+![效果动图：选中回复文字，添加疑问和批注，再随下一条消息发送反馈。](docs/assets/preview.gif)
+
+*聚焦批注操作流程的示意演示，对话内容和模型名称均为虚构示例。*
+
 ---
 
 ## 目录
@@ -156,6 +162,16 @@
 如果只想临时关闭，可以在 profile 的 `cordis.patch.yml` 中把 `inplace-annotate` 这一行设为 `disabled: true`。
 
 ## 开发者验证
+
+重新生成预览动图：安装 Node.js、librsvg（`rsvg-convert`）、ImageMagick（`magick`）和 FFmpeg（`ffmpeg`）后运行：
+
+```sh
+node scripts/generate-preview.mjs
+```
+
+脚本会生成一段 18 秒循环播放的 `docs/assets/preview.gif`，并自动清理临时帧。建议安装 Arial 或 Liberation Sans 以保持字体一致，否则会使用系统无衬线字体。macOS 可通过 `brew install librsvg imagemagick ffmpeg` 安装渲染工具。无需运行 DSH。预览素材和生成脚本不在插件的打包文件列表中。
+
+插件检查：
 
 ```sh
 node --check index.js

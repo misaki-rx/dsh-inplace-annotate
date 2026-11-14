@@ -9,6 +9,12 @@ In the DSH Web chat, select a passage in an agent reply and mark it **Agree**, *
 - Annotated passages get a highlighter-style mark and a corner badge in the reply. Click an entry in the pending list to jump back to it.
 - Scoped to the current conversation. Uninstall the plugin and the built-in **Quote text** button returns.
 
+## Preview
+
+![Animated preview: select reply text, add a question and comment, then send feedback with your next message.](docs/assets/preview.gif)
+
+*Illustrative demo focused on the annotation workflow. Conversation content and model names are fictional examples.*
+
 ---
 
 ## Contents
@@ -156,6 +162,16 @@ Annotations are scoped per conversation: switching to another conversation does 
 To turn it off temporarily, set the `inplace-annotate` line in the profile's `cordis.patch.yml` to `disabled: true`.
 
 ## Developer checks
+
+To regenerate the preview, install Node.js, librsvg (`rsvg-convert`), ImageMagick (`magick`), and FFmpeg (`ffmpeg`), then run:
+
+```sh
+node scripts/generate-preview.mjs
+```
+
+The script renders an 18-second looping GIF to `docs/assets/preview.gif` and cleans up its temporary frames. Install Arial or Liberation Sans for consistent typography; otherwise it falls back to the system sans-serif font. On macOS, the rendering tools can be installed with `brew install librsvg imagemagick ffmpeg`. No DSH session is needed. Preview assets and the generator are excluded from the plugin's package file list.
+
+Plugin checks:
 
 ```sh
 node --check index.js
