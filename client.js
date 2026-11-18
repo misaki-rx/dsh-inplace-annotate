@@ -147,7 +147,8 @@ window.__ModuleLoader__.load({
 .ann-btn:hover{background:var(--dsw-alias-bg-layer-2)}
 .ann-btn:disabled{opacity:.5;cursor:default}
 .ann-btn--primary{border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-brand-primary)}
-.ann-dock{box-sizing:border-box;width:100%;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);border-radius:10px;padding:8px 10px;font-size:12px;line-height:17px;color:var(--dsw-alias-label-primary)}
+/* Match the prompt card: the composer centers it inside its side clearance. */
+.ann-dock{box-sizing:border-box;width:calc(100% - 2 * var(--dsh-composer-side-clearance, 16px));max-width:var(--dsh-composer-card-max-width, 100%);margin:0 auto;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);border-radius:var(--dsw-radius-panel, 10px);padding:8px 10px;font-size:12px;line-height:17px;color:var(--dsw-alias-label-primary)}
 .ann-head{display:flex;align-items:center;gap:8px}
 .ann-title{font-weight:600}
 .ann-count{min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:11px;line-height:18px;text-align:center}
